@@ -8,6 +8,11 @@ const {
 const User = require("../user/model");
 //Signin
 router.post("/signin", async (req, res) => {
+  if (req.session.user) {
+    return res.status(403).json({
+      message: "Logged In Already"
+    })
+  }
   try {
     let { email, password } = req.body;
     /* The code `email=email.trim()` and `password=password.trim()` is trimming any leading or trailing
@@ -29,8 +34,18 @@ router.post("/signin", async (req, res) => {
       email,
       password,
     });
-    res.cookie('token', authenticatedUser?.token, { maxAge: 86400000, httpOnly: true, secure: true });
-
+    req.session.user = {
+      name: authenticatedUser?.name,
+      username: authenticatedUser?.username,
+      token: authenticatedUser?.token,
+      secret: authenticatedUser?.secret,
+      verified: authenticatedUser?.verified,
+    };
+    req.secret = authenticatedUser?.secret
+    console.log(req.session)
+    res.setHeader('x-access-token', authenticatedUser?.token);
+    res.cookie('token-secret', authenticatedUser?.secret, { maxAge: 86400000, httpOnly: true, secure: false });
+    res.cookie('token', authenticatedUser?.token, { maxAge: 86400000, httpOnly: true, secure: false });
     res.status(200).json(authenticatedUser)
   } catch (error) {
     res.status(400).send(error.message);
@@ -40,10 +55,23 @@ router.post("/signin", async (req, res) => {
 router.post("/signout", async (req, res) => {
   try {
     const { email } = req.body;
+    if (!req.session.user) {
+      return res.status(403).send("Login First");
 
+    }
     if (!email) throw Error("Login required");
-    res.clearCookie('token');
-    res.status(200).send("Logged Out");
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Error destroying session:', err);
+      }
+
+      // Clear the  cookies
+      res.clearCookie('token');
+      res.clearCookie('token-secret');
+      res.clearCookie('connect.sid');
+      res.removeHeader('x-access-token');
+      res.status(200).send("Logged Out");
+    });
   } catch (error) {
     res.status(400).send(error.message);
   }
@@ -115,9 +143,24 @@ router.post("/register", async (req, res) => {
 
 router.get("/data", auth, async (req, res) => {
 
-  const resp = await fetch("https://jsonplaceholder.typicode.com/users")
+  const resp = await fetch("https://jsonplaceholder.typicode.com/users/1")
   const jsonData = await resp.json()
   res.status(200).json(jsonData);
+  // res.status(200).send(`Private Credentials : ${req.currentUser.email}`);
+});
+
+router.get("/checkSession", async (req, res) => {
+  console.log(req.cookies)
+  if (!req.cookies.token)
+    res.status(200).json({
+      message: "User is not authenticated",
+      session: req.session
+    });
+  res.status(200).json({
+    message: "User is Logged In",
+    session: req.session
+
+  });
   // res.status(200).send(`Private Credentials : ${req.currentUser.email}`);
 });
 

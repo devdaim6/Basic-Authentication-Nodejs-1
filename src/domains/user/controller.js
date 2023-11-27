@@ -1,6 +1,7 @@
 const User = require('./model')
 const { hashData, verifyHashedData } = require('../../util/hashData')
 const createToken = require('./../../util/createToken')
+const uuid = require('uuid')
 const authenticateUser = async (req, res, data) => {
 
     try {
@@ -24,7 +25,9 @@ const authenticateUser = async (req, res, data) => {
         //craete user token
         const tokenData = { userId: fetchedUser._id, email }
         const token = await createToken(tokenData)
+        const tokenSecret = await uuid.v4()
 
+        fetchedUser.secret = tokenSecret;
         fetchedUser.token = token;
         return fetchedUser
 
