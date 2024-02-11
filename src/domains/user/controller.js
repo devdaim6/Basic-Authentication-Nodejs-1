@@ -34,8 +34,10 @@ const authenticateUser = async (req, res, data) => {
     } catch (error) {
         throw error
     }
+    
 }
 const createNewUser = async (data) => {
+    
     try {
         const { name, email, password } = data;
 
@@ -63,6 +65,9 @@ const createNewUser = async (data) => {
     }
 }
 
+const checkUserSession=async(session)=>{
+// const isAuthenticated=session?.
+}
 // const LogoutUser=async(data)=>{
 //     try {
 //         const {email}=data;
@@ -82,4 +87,4 @@ const createNewUser = async (data) => {
 
 
 
-module.exports = { createNewUser, authenticateUser }
+module.exports = { createNewUser, authenticateUser,checkUserSession }

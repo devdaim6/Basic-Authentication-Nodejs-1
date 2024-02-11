@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { createNewUser, authenticateUser } = require("./controller");
+const { createNewUser, authenticateUser ,checkUserSession} = require("./controller");
 const auth = require("../../middleware/auth");
 const {
   sendVerificationOTPEmail,
@@ -150,9 +150,9 @@ router.get("/data", auth, async (req, res) => {
 });
 
 router.get("/checkSession", async (req, res) => {
-  console.log(req.cookies)
-  if (!req.cookies.token)
-    res.status(200).json({
+   const userHasSession=await checkUserSession(req?.session)
+  if (!userHasSession)
+    res.status(404).json({
       message: "User is not authenticated",
       session: req.session
     });
@@ -163,5 +163,5 @@ router.get("/checkSession", async (req, res) => {
   });
   // res.status(200).send(`Private Credentials : ${req.currentUser.email}`);
 });
-
+ 
 module.exports = router;

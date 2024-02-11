@@ -6,6 +6,10 @@ const cors = require('cors')
 const session = require('express-session');
 const routes = require('./routes')
 const app = express()
+app.use(cors({
+  origin: 'http://localhost:3000', // Replace with your React app's origin
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+}));
 app.use(cookieParser());
 app.use(session({
   secret: process.env.TOKEN_SECRET, // Change this to a strong and secure secret
@@ -18,7 +22,6 @@ app.use(session({
 mechanism that allows resources (e.g., APIs) on a web page to be requested from another domain
 outside the domain from which the resource originated. By using `app.use(cors())`, the application
 is allowing requests from any domain to access its resources. */
-app.use(cors())
 
 
 /* `app.use(bodyParser())` is configuring the application to use the `body-parser` middleware. */
